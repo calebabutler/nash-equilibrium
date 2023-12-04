@@ -176,7 +176,7 @@ def main():
         # Append row to table
         table.append(row)
     # Print table
-    print(tabulate.tabulate(table, headers, tablefmt='grid'))
+    print(tabulate.tabulate(table, headers, tablefmt='github'))
     # Save plot
     fig.set_size_inches(12.8, 201.6)
     plt.savefig('plots.png', dpi=100)
