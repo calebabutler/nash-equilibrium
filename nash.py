@@ -23,6 +23,7 @@
 import random
 import tabulate
 import sys
+from matplotlib import pyplot as plt
 
 
 def run_single_game(move1, move2, game_number):
@@ -103,11 +104,13 @@ def get_next_move(strategy, previous_moves):
 
 def run_whole_game(iterations, strategy1, strategy2):
     '''
-    Run game with two strategies and 'iterations' number of iterations
+    Run game with two strategies and 'iterations' number of iterations.
+    'score1' is the score history of player 1 and 'score2' is the score
+    history of player 2.
     '''
-    # Initial scores
-    score1 = 0
-    score2 = 0
+    # Initial score histories
+    score1 = []
+    score2 = []
     # Initial list of previous moves
     previous_moves1 = []
     previous_moves2 = []
@@ -121,10 +124,10 @@ def run_whole_game(iterations, strategy1, strategy2):
         previous_moves2.append(move2)
         # Run single game and get single game scores
         s1, s2 = run_single_game(move1, move2, game_number)
-        # Add scores to score total
-        score1 += s1
-        score2 += s2
-    # Return ending scores
+        # Add scores to score histories
+        score1.append(s1)
+        score2.append(s2)
+    # Return final score histories
     return (score1, score2)
 
 
@@ -133,7 +136,7 @@ def main():
     Runs all strategy pairs defined in 'headers' to 'iterations' number of
     iterations, puts scores in a table and prints the table to the screen
     '''
-    iterations = 100000
+    iterations = 10000
     headers = ['',
                'always defect',
                'always collaborate',
@@ -142,6 +145,10 @@ def main():
                'tit-for-tat with forgiveness',
                'tit-for-tat with reputation',
                'randomness with reputation']
+
+    # Variable for graphs
+    fig, axs = plt.subplots(28)
+    subplot = 0
 
     # Create table one row at a time
     table = []
@@ -155,11 +162,25 @@ def main():
         for strategy2 in headers[i + 1:]:
             print(f'Running game {strategy1} vs. {strategy2}...',
                   file=sys.stderr)
-            row.append(str(run_whole_game(iterations, strategy1, strategy2)))
+            score1, score2 = run_whole_game(iterations, strategy1, strategy2)
+            # Graph information
+            axs[subplot].set_title(f'{strategy1} vs. {strategy2}')
+            axs[subplot].set_xlabel('iteration')
+            axs[subplot].set_ylabel('score')
+            axs[subplot].plot(score1, label='Player 1')
+            axs[subplot].plot(score2, label='Player 2')
+            axs[subplot].legend()
+            subplot += 1
+            # Add to row
+            row.append(f'({sum(score1):.2f}, {sum(score2):.2f})')
         # Append row to table
         table.append(row)
     # Print table
     print(tabulate.tabulate(table, headers, tablefmt='grid'))
+    # Save plot
+    fig.set_size_inches(12.8, 201.6)
+    plt.savefig('plots.png', dpi=100)
+    plt.close(fig)
 
 
 if __name__ == '__main__':
